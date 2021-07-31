@@ -39,6 +39,9 @@ function getTime(timeString, selected) {
 }
 
 
+/**
+ * Enum for time formats, using just to keep consistency
+ */
 const timeFormat = {
   AM: 'AM',
   PM: 'PM'
@@ -47,5 +50,6 @@ const timeFormat = {
 
 export { 
   timeFormat,
-  getTimeDifference
+  getTimeDifference,
+  getTimeValues
 }

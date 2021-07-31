@@ -11,36 +11,46 @@
     <div id="input-area">
       <b-form>
         <p class="from-to">From <span class="time-format">(hh:mm)</span> </p>
-        <div id="start" class="time-input-container">
-          <the-mask class="time-input" v-model="start" :mask="['##:##']"></the-mask>
+        <div class="time-input-wrapper">
+          <div id="start" class="time-input-container">
+            <the-mask class="time-input" v-model="start.timeValue" :mask="['##:##']"></the-mask>
 
-          <b-form-radio-group
-          class="am-pm-radio"
-          v-model="selected.start"
-          :options="timeOptions"
-          name="from-options"
-          >
-          </b-form-radio-group>
+            <b-form-radio-group
+            class="am-pm-radio"
+            v-model="start.timeFormat"
+            :options="timeOptions"
+            name="from-options"
+            >
+            </b-form-radio-group>
+
+          </div>
+          <div class="time-error">{{start.error}}</div>
         </div>
+ 
+
         <p class="from-to">To <span class="time-format">(hh:mm)</span> </p>
-        <div id="end" class="time-input-container">
+        <div class="time-input-wrapper">
+          <div id="end" class="time-input-container">
 
-          <the-mask class="time-input" v-model="end" :mask="['##:##']"></the-mask>
+            <the-mask class="time-input" v-model="end.timeValue" :mask="['##:##']"></the-mask>
 
-          <b-form-radio-group
-          class="am-pm-radio"
-          v-model="selected.end"
-          :options="timeOptions"
-          name="to-options"
-          >
-          </b-form-radio-group>
+            <b-form-radio-group
+            class="am-pm-radio"
+            v-model="end.timeFormat"
+            :options="timeOptions"
+            name="to-options"
+            >
+            </b-form-radio-group>
 
 
 
+          </div>
+          <div class="time-error">{{end.error}}</div>
         </div>
+ 
       </b-form>
 
-      <b-button @click="submitTime">Start</b-button>
+      <b-button @click="submitTime" :disabled="start.error != null || end.error != null">Start</b-button>
     </div>
 
   </div>
@@ -48,7 +58,7 @@
 
 <script>
 import { TheMask } from 'vue-the-mask';
-import { timeFormat, getTimeDifference} from "../utilities/time";
+import { timeFormat, getTimeValues} from "../utilities/time";
 
 export default {
   components: {
@@ -58,23 +68,52 @@ export default {
 
   data() {
     return {
-      start: "0900",
-      end: "0500",
-      selected: {
-        start: timeFormat.AM,
-        end: timeFormat.PM
+      start: {
+        timeValue: "0900",
+        error: null,
+        timeFormat: timeFormat.AM
       },
+      end: {
+        timeValue: "0500",
+        error: null,
+        timeFormat: timeFormat.PM
+      },
+
       timeOptions: [
         { text: 'am', value: timeFormat.AM},
         { text: 'pm', value: timeFormat.PM}
-      ]   
+      ],
+      
+    }
+  },
+
+  watch: {
+    'start.timeValue': function() {
+      this.checkTime(this.start)
+    },
+
+    'end.timeValue': function() {
+      this.checkTime(this.end)
     }
   },
 
   methods: {
 
     submitTime() {
-      console.log(getTimeDifference(this.start, this.end, this.selected))
+      this.$emit("finishSetup", [this.start, this.end])
+    },
+
+    /**
+     * Checks input time for validation errors, used inside watchers for start and end time
+     * @param time Time object that is going to be checked
+     */
+    checkTime(time) {
+      const [hours, minutes] = getTimeValues(time.timeValue);
+      if(hours > 12 || minutes > 60){
+        time.error = "Bad time format"
+      } else {
+        time.error = null
+      }
     }
 
   }
@@ -98,8 +137,12 @@ export default {
   height: 30px;
   margin: auto;
   font-size: 18px;
-  margin-bottom: 30px;
+
   display: flex;
+}
+
+.time-input-wrapper {
+  margin-bottom: 30px;
 }
 
 .time-input {
@@ -127,8 +170,11 @@ export default {
   margin-left: 10px;
 }
 
-#start-button {
-  background: ;
+.time-error {
+  height: 10px;
+  font-size: 13px;
+  margin-bottom: auto;
+  color: red;
 }
 
 </style>
