@@ -1,3 +1,4 @@
+
 import dayjs from 'dayjs';
 
 /**
@@ -23,6 +24,20 @@ function getTime(timeString, selected) {
   return time;
 }
 
+function getTimeStringFromNumbers(hour, minute) {
+  let hourString = hour;
+  let minuteString = minute;
+  if(hour < 10) {
+    hourString = `0${hour}`;
+  }
+
+  if(minute < 10) {
+    minuteString = `0${minute}`;
+  }
+
+  return `${hourString}:${minuteString}`
+}
+
 
 /**
  * Gets difference in time between two given strings of format "hh:mm" with given AM/PM, in minutes
@@ -31,12 +46,55 @@ function getTime(timeString, selected) {
  * @param {*} selected Object that contains the start times AM/PM value and end times AM/PM value
  * @returns Difference in time in minutes
  */
- function getTimeDifference(timeStringStart, timeStringEnd, selected) {
-  let start = getTime(timeStringStart, selected.start)
-  let end = getTime(timeStringEnd, selected.end)
+ function getTimeDifference(timeStart, timeEnd) {
+  let start = getTime(timeStart.timeValue, timeStart.timeFormat)
+  let end = getTime(timeEnd.timeValue, timeEnd.timeFormat)
 
   return Math.abs(start.diff(end, 'minute'));
 }
+
+
+function getTimeRange(timeStart, timeEnd, increment) {
+  let [startHour, startMinute] = getTimeValues(timeStart.timeValue);
+  let [endHour] = getTimeValues(timeEnd.timeValue);
+  let range = [];
+  startMinute = startMinute - startMinute % 30
+  while (startHour != endHour) {
+
+    startMinute += increment;
+    if(startMinute != startMinute % 60) {
+      startMinute = startMinute % 60;
+      startHour += 1;
+    }
+
+    if(startHour > 12) {
+      switch (timeStart.timeFormat) {
+        case timeFormat.AM:
+          timeStart.timeFormat = timeFormat.PM;
+          break;
+        case timeFormat.PM:
+          timeStart.timeFormat = timeFormat.AM;
+          break;
+      }
+
+      startHour = 1;
+
+
+    }
+
+    let timeObject = {
+      timeValue: getTimeStringFromNumbers(startHour, startMinute),
+      timeFormat: timeStart.timeFormat
+    }
+    
+    range.push(timeObject);
+  }
+
+  return range;
+
+}
+
+
 
 
 /**
@@ -51,5 +109,6 @@ const timeFormat = {
 export { 
   timeFormat,
   getTimeDifference,
-  getTimeValues
+  getTimeValues,
+  getTimeRange
 }

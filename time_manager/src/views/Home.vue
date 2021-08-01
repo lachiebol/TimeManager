@@ -32,7 +32,6 @@ export default {
 
   methods: {
     setupFinished(e) {
-      console.log(e)
       this.start = e[0]
       this.end = e[1]
       this.setup = true;
