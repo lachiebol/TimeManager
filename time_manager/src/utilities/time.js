@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 
 /**
  * Takes string of form "hh:mm" and extracts hour and minute values
- * @param {*} timeString string to be split into respective values
+ * @param {string} timeString string to be split into respective values
  * @returns Array containing hours and minutes
  */
 function getTimeValues(timeString) {
@@ -12,8 +12,8 @@ function getTimeValues(timeString) {
 
 /**
  * Gets dayjs time object from given timeString, used so I can use diff method of dayjs
- * @param {*} timeString 
- * @param {*} selected 
+ * @param {string} timeString string that we are getting time values from
+ * @param {timeFormat} selected AM or PM
  * @returns 
  */
 function getTime(timeString, selected) {
@@ -24,6 +24,13 @@ function getTime(timeString, selected) {
   return time;
 }
 
+
+/**
+ * Gets string in format hh:mm from hour and minute
+ * @param {*} hour 
+ * @param {*} minute 
+ * @returns 
+ */
 function getTimeStringFromNumbers(hour, minute) {
   let hourString = hour;
   let minuteString = minute;
@@ -41,9 +48,9 @@ function getTimeStringFromNumbers(hour, minute) {
 
 /**
  * Gets difference in time between two given strings of format "hh:mm" with given AM/PM, in minutes
- * @param {*} timeStringStart Start time
- * @param {*} timeStringEnd End time
- * @param {*} selected Object that contains the start times AM/PM value and end times AM/PM value
+ * @param {string} timeStringStart Start time
+ * @param {string} timeStringEnd End time
+ * @param {string} selected Object that contains the start times AM/PM value and end times AM/PM value
  * @returns Difference in time in minutes
  */
  function getTimeDifference(timeStart, timeEnd) {
@@ -54,6 +61,13 @@ function getTimeStringFromNumbers(hour, minute) {
 }
 
 
+/**
+ * Gets range of timeObjects from a given start time to a given end time, with given increment
+ * @param {string} timeStart start of range
+ * @param {string} timeEnd end of range
+ * @param {number} increment gap between each time slot in minutes
+ * @returns 
+ */
 function getTimeRange(timeStart, timeEnd, increment) {
   let [startHour, startMinute] = getTimeValues(timeStart.timeValue);
   let [endHour] = getTimeValues(timeEnd.timeValue);
