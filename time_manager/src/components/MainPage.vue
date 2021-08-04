@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div>Today you are working from {{getTime(start.timeValue)}} {{start.timeFormat}} till {{getTime(end.timeValue)}} {{end.timeFormat}} {{difference/60}} hours</div>
+    <div id="day-info">Today you are working from {{getTime(start.timeValue)}} {{start.timeFormat}} till {{getTime(end.timeValue)}} {{end.timeFormat}}</div>
 
     <div id="timeslot-container"> 
       <div id="time-value-container">
@@ -9,10 +9,14 @@
         </div>
       </div>
       <div id="items">
-        <draggable v-model="tasks">
-          <transition-group>
-            <div v-for="item in tasks" :key="item.id" id="item" :style="{height: getHeightOfTask(item.duration) + 'px', background: getColourOfTask(item.type)}" @click="test">
-                {{item.title}} {{item.description}}
+        <draggable v-model="displayTasks" v-bind="dragOptions" @start="drag=true" @end="drag = false">
+          <transition-group type="transition" :name="!drag ? 'flip-list' : null">
+            <div v-for="item in displayTasks" :key="item.id" id="item" :style="{height: getHeightOfTask(item.duration) + 'px', background: getColourOfTask(item.type)}">
+                <div v-if="isTask(item)">
+                  <div>{{item.title}}</div>
+                  <div>{{item.description}}</div>
+                  <div>{{item.duration}}</div>
+                </div>
             </div>
           </transition-group>
         </draggable>
@@ -43,39 +47,39 @@ export default {
       dayRange: null,
       tasks: [
         {
-          id: 1,
-          title: 'hello',
+          title: 'hi',
           duration: 120,
           startTime: '09:30',
           timeFormat: timeFormat.AM,
-          description: 'i shit my pant',
+          description: 'task 1',
           type: slotType.TASK
         },
         {
-          id: 2,
-          title: 'yeloe',
+          title: 'aye',
           duration: 60,
           startTime: '03:30',
           timeFormat: timeFormat.PM,
-          description: 'i shit my pant',
+          description: 'task 2',
           type: slotType.TASK
         },
         {
-          id: 3,
-          title: 'elo',
+          title: 'task',
           duration: 30,
           startTime: '04:30',
           timeFormat: timeFormat.PM,
-          description: 'i shit my pant',
+          description: 'task 3',
           type: slotType.TASK
         }
-      ]
+      ],
+
+      displayTasks: null,
+      drag: false
     }
   },
 
   watch: {
-    tasks: function() {
-
+    displayTasks: function() {
+      this.updateTasks()
     }
   },
 
@@ -84,7 +88,8 @@ export default {
 
     this.dayRange = getTimeRange(this.start, this.end, 30);
 
-    this.tasks = this.getTasksToDisplay()
+    this.displayTasks = this.getTasksToDisplay()
+
     
   },
 
@@ -135,6 +140,8 @@ export default {
 
         if(matchedTask.length > 0) {
           let task = matchedTask[0];
+
+          task.id = currentSlot;
       
           data.push(task);
 
@@ -154,7 +161,35 @@ export default {
         }
       }
 
+
       return data;
+    },
+
+    isTask(task) {
+      return task.type == slotType.TASK
+    },
+
+
+    updateTasks() {
+
+      let changed = false; //variable to prevent watch loop, will only update display tasks if altered
+
+      let currentSlot = 0; //used to index into timeslot
+
+      for (let curTask of this.displayTasks) {
+        if(curTask.startTime != this.dayRange[currentSlot].timeValue && curTask.type == slotType.TASK) {
+
+          let task = this.tasks.filter(x => x.id == curTask.id)[0];
+          task.startTime = this.dayRange[currentSlot].timeValue;
+          task.timeFormat = this.dayRange[currentSlot].timeFormat
+          changed = true;
+        }
+        currentSlot += curTask.duration / 30
+      }
+      console.log(this.tasks)
+
+      if(changed) this.displayTasks = this.getTasksToDisplay();
+
     }
 
 
@@ -172,6 +207,15 @@ export default {
       return slots
     },
 
+    dragOptions() {
+      return {
+        animation: 200,
+        group: "description",
+        disabled: false,
+        ghostClass: "ghost"
+      };
+    }
+
   
   }
 
@@ -179,6 +223,24 @@ export default {
 </script>
 
 <style>
+
+
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
+}
+.ghost {
+  opacity: 0.5;
+  background: #c8ebfb;
+}
+
+
+#day-info {
+  font-size: 20px;
+  margin-bottom: 40px;;
+}
 
 #time-value-container {
   float: left;
@@ -202,7 +264,7 @@ export default {
   background: lightgreen;
   border-style: solid;
   border-width: 1px;
-  width: 200px;
+  width: 250px;
   cursor:grab;
 }
 

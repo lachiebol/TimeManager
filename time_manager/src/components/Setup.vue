@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="head">
-      <h1 id="header">Time Manager</h1>
+      <h1 id="header">Time Fixinator</h1>
       <h2>Welcome!</h2>
       <h3>This site allows you to plan out your day</h3>
       <p id="to-start">To start, just fill out what hours you plan on working today</p>
@@ -99,6 +99,9 @@ export default {
 
   methods: {
 
+    /**
+     * Emit time values to parent to be passed into main page
+     */
     submitTime() {
       this.$emit("finishSetup", [this.start, this.end])
     },
