@@ -1,4 +1,4 @@
-# TimeManager
+# Time Fixinator
 
 Time scheduling website, allows you to create tasks, and place them in a timeline. Tasks in the timeline can be dragged around and placed into timeslots.
 
