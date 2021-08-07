@@ -73,8 +73,7 @@ export default {
       animated: true,
       add: false,
       noSpace: false,
-      tasks: [
-      ],
+      tasks: [],
 
       displayTasks: null,
       drag: false
@@ -82,6 +81,9 @@ export default {
   },
 
   watch: {
+    /**
+     * Listen for updates on display tasks, if so update task like with new timees
+     */
     displayTasks: function() {
       this.updateTasks()
     },
@@ -89,10 +91,13 @@ export default {
   },
 
   mounted() {
+    //Compute difference in time (eg. 8 hours)
     this.difference = getTimeDifference(this.start, this.end)
 
+    //Get range of values (eg. 9:00, 9:30, ... , 5:00)
     this.dayRange = getTimeRange(this.start, this.end, 30);
-
+    
+    //Setup tasks to display from given list of tasks
     this.displayTasks = this.getTasksToDisplay()
 
     
@@ -110,7 +115,8 @@ export default {
 
 
      /**
-     * Adds task to 
+     * Adds task to schedule, also does computing of if it can fit in current schedule. 
+     * @TODO Pull this out into smaller methods, currently cognitive complexity is high and will probably not under stand in a few days
      * @param {string} timeString
      */
     addTask(task) {
@@ -154,7 +160,9 @@ export default {
 
     },
 
-
+    /**
+     * Removes task from timeline, also adds task to available tasks, then updates tasks
+     */
     removeTask(task) {
       this.tasks = this.tasks.filter(x => x != task);
       this.$refs.taskCreator.addTaskToList(task);
@@ -203,15 +211,26 @@ export default {
       return data;
     },
 
+    /**
+     * Checks if given task is a task
+     * @param task task that is checked
+     */
     isTask(task) {
       return task.type == slotType.TASK
     },
 
+    /**
+     * Checks if given task is empty
+     * @param task task that is checked
+     */
     isEmpty(task) {
       return task.type == slotType.EMPTY
     },
 
 
+    /**
+     * Updates list of tasks, this is called if a task moves in displayTask, as displayTask and tasks are seperate lists
+     */
     updateTasks() {
 
       let changed = false; //variable to prevent watch loop, will only update display tasks if altered
@@ -228,7 +247,6 @@ export default {
         }
         currentSlot += curTask.duration / 30
       }
-      console.log(this.tasks)
 
       if(changed) this.displayTasks = this.getTasksToDisplay();
 
@@ -239,7 +257,9 @@ export default {
 
 
   computed: {
-
+    /**
+    * Gets all timeslots to be displayed in schedule
+    */
     timeSlots() {
       let slots = [];
       for(let i = 0; i < this.difference; i += 30) {
@@ -249,6 +269,9 @@ export default {
       return slots
     },
 
+    /**
+    * Options for transitions when dragging tasks
+    */
     dragOptions() {
       return {
         animation: 200,
@@ -293,7 +316,7 @@ export default {
 
 #timeline-col {
   margin-top: 11px;
-  /* padding-left: 0.25em; */
+  margin-left: 5px;
 }
 
 
@@ -303,7 +326,6 @@ export default {
 }
 
 #time-value-container {
-
   float: left;
 }
 

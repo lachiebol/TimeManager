@@ -39,7 +39,7 @@ export default {
       tasks: [
        {
           id: 0,
-          title: 'Drop kids off at lake i will',
+          title: 'Attend Meeting',
           duration: 30,
           description: 'task 1',
           timeFormat: timeFormat.AM,
@@ -49,15 +49,18 @@ export default {
     };
   },
 
-  mounted() {
-    console.log(this.getDurations);
-  },
   methods: {
-
+    /**
+     * Adds task to list of available tasks
+     * @param Task task that is going to be added
+     */
     addTaskToList(task) {
       this.tasks.push(task);
     },
 
+    /**
+     * Creates new tasks from data inputted in form
+     */
     createTask() {
       let newTask;
       let newId;
@@ -79,21 +82,37 @@ export default {
       this.clearForm();
     },
 
+    /**
+     * Clears values in popup form for adding tasks
+     */
     clearForm() {
       this.durationIndex = 0
       this.newTaskTitle = null,
       this.newTaskDescription = null
     },
 
+
+    /**
+     * Emits event to parent (MainPage) that adds task to time schedule
+     * @param task task that is going to be added to schedule
+     */
     addToTasks: function(task) {
       this.$emit("addTask", task)
     },
 
+
+    /**
+     * Formatter used for spin button, gets time value (eg. 1 hour 30 minutes) to be displayed
+     * @param index index of value in spin button
+     */
     durationFormatter(index) {
       return this.getDurations[index].value
     },
 
-
+     /**
+     * Removes task from list of available tasks, called when task is added to schedule
+     * @param task task that is being added to schedule
+     */
     removeTask(task) {
       this.tasks = this.tasks.filter(x => x != task);
     }
@@ -102,6 +121,9 @@ export default {
   },
 
   computed: {
+    /**
+     * Gets values for duration, used in spin button
+     */
     getDurations() {
       let currentHour = 1;
       let durations = [];

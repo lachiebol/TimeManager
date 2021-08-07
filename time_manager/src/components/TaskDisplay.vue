@@ -1,7 +1,7 @@
 <template>
     <b-container id="container" v-if="loaded">
       <transition name="expand" v-show="adding">
-        <b-row cols="2" id="item" :style="{height: getHeightOfTask(task.duration) + 'px', background: getColourOfTask(task.type)}"  :class="{'dotted': isTask(task)}">
+        <b-row cols="2" id="item" :style="{height: getHeightOfTask(task.duration) + 'px', background: getColourOfTask(task.type)}"  :class="{'dotted': isTask(task), 'draggable': position == 'inTimeline'}">
           <b-col cols="3" v-if="isTask(task)" id="title">
             {{task.title}}
           </b-col>
@@ -33,7 +33,6 @@ export default {
 
 
   mounted(){
-    console.log(this.position)
     this.loaded = true;
   },
 
@@ -47,10 +46,17 @@ export default {
       return 50 * (taskLength / 30)
     },
 
+     /**
+     * Adds task (of this component) to timeline
+     */
     addTaskToTimeline() {
       this.$emit("addTask", this.task)
     },
 
+
+    /**
+     * Removes task (of this component) from timeline
+     */
     removeTaskFromTimeline() {
       this.$emit("removeTask", this.task)
     },
@@ -60,7 +66,6 @@ export default {
      * @param {slotType} taskType type of task (task or empty)
      */
     getColourOfTask(taskType) {
-      console.log(slotType.TASK)
       if(taskType == slotType.TASK) {
         return 'linear-gradient(to right, #5492a5, #82d2eb)'
       } else if (taskType == slotType.EMPTY) {
@@ -68,6 +73,10 @@ export default {
       }
     },
 
+     /**
+     * Checks if task is not empty
+     * @param task task that is being checked
+     */
     isTask(task) {
       return task.type == slotType.TASK
     },
@@ -85,12 +94,9 @@ export default {
 
 #item {
   width: 100%;
-  /* display: flex; */
-  /* flex-flow: column wrap; */
   justify-content: center;
   color: white;
-  
-  cursor:grab;
+
 }
 
 #title {
@@ -104,6 +110,11 @@ export default {
 #container {
   width: 100%;
   padding: 0;
+  
+}
+
+.draggable {
+  cursor:grab;
 }
 
 .icon {
