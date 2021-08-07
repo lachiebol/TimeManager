@@ -72,14 +72,19 @@ function getTimeRange(timeStart, timeEnd, increment) {
   let [startHour, startMinute] = getTimeValues(timeStart.timeValue);
   let [endHour] = getTimeValues(timeEnd.timeValue);
   let range = [];
-  startMinute = startMinute - startMinute % 30
+  range.push({
+    timeValue: getTimeStringFromNumbers(startHour, startMinute),
+    timeFormat: timeFormat.AM
+  })
   while (startHour != endHour) {
 
     startMinute += increment;
+
     if(startMinute != startMinute % 60) {
       startMinute = startMinute % 60;
       startHour += 1;
     }
+
 
     if(startHour > 12) {
       switch (timeStart.timeFormat) {
@@ -92,8 +97,6 @@ function getTimeRange(timeStart, timeEnd, increment) {
       }
 
       startHour = 1;
-
-
     }
 
     let timeObject = {
@@ -102,8 +105,24 @@ function getTimeRange(timeStart, timeEnd, increment) {
     }
     
     range.push(timeObject);
+    
   }
 
+  for (let time of range) {
+
+    if(time.timeValue == "12:00" || time.timeValue == "12:30") {
+      console.log(time)
+      switch (time.timeFormat) {
+        case timeFormat.AM:
+          time.timeFormat = timeFormat.PM;
+          break;
+        case timeFormat.PM:
+          time.timeFormat = timeFormat.AM;
+          break;
+      }
+    }
+  } 
+  console.log(range);
   return range;
 
 }

@@ -1,24 +1,18 @@
 <template>
   <div class="home">
-    <Setup @finishSetup="setupFinished" v-if="!setup"></Setup>
 
-    <transition name="slide">
-       <MainPage :start="start" :end="end" v-if="setup"></MainPage>
-    </transition>
-   
+       <MainPage></MainPage>
+
 
   </div>
 </template>
 
 <script>
-
-import Setup from "../components/Setup.vue"
 import MainPage from "../components/MainPage.vue"
 
 export default {
   name: 'Home',
   components: {
-    Setup,
     MainPage
   },
 

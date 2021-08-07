@@ -1,27 +1,42 @@
 <template>
   <div>
-    <div id="day-info">Today you are working from {{getTime(start.timeValue)}} {{start.timeFormat}} till {{getTime(end.timeValue)}} {{end.timeFormat}}</div>
-
-    <div id="timeslot-container"> 
-      <div id="time-value-container">
-        <div v-for="slot in dayRange" :key="slot" id="time-values">
-          {{slot.timeValue}} {{slot.timeFormat}}
-        </div>
-      </div>
-      <div id="items">
-        <draggable v-model="displayTasks" v-bind="dragOptions" @start="drag=true" @end="drag = false">
-          <transition-group type="transition" :name="!drag ? 'flip-list' : null">
-            <div v-for="item in displayTasks" :key="item.id" id="item" :style="{height: getHeightOfTask(item.duration) + 'px', background: getColourOfTask(item.type)}">
-                <div v-if="isTask(item)">
-                  <div>{{item.title}}</div>
-                  <div>{{item.description}}</div>
-                  <div>{{item.duration}}</div>
-                </div>
-            </div>
-          </transition-group>
-        </draggable>
-      </div>
+    <!-- <div id="day-info">Today you are working from {{getTime(start.timeValue)}} {{start.timeFormat}} till {{getTime(end.timeValue)}} {{end.timeFormat}}</div> -->
+    <h1 id="header">Time Fixinator</h1>
+    <div id="no-space">
+      <span v-if="noSpace">No space available, please re-order then try again</span>
     </div>
+    <b-container id="content-container">
+      <b-row>
+        <b-col cols="7">
+
+          <b-container id="timeline-container">
+            <b-row>
+              <b-col cols="3" id="time-value-col">
+                <div v-for="slot in dayRange" :key="slot" id="time-values">
+                  <span>{{slot.timeValue}} {{slot.timeFormat}}</span>
+                </div>
+              </b-col>
+              <b-col cols="6" id="timeline-col">
+                <draggable v-model="displayTasks" v-bind="dragOptions" @start="drag=true" @end="drag = false">
+                  <transition-group type="transition" :css="animated" :name="!drag ? 'flip-list' : null">
+                      <div v-for="item in displayTasks" :key="item.id">
+                        <TaskDisplay :task="item" @removeTask="removeTask" :position="'inTimeline'"></TaskDisplay>
+                      </div>
+                  </transition-group>
+                </draggable>
+              </b-col>
+            </b-row>
+          </b-container>
+        </b-col>
+
+        <b-col cols="4">
+          <TaskCreator @addTask="addTask" ref="taskCreator"></TaskCreator>
+        </b-col>
+      </b-row>
+
+    </b-container>
+ 
+
   </div>
 
 
@@ -31,45 +46,34 @@
 import {getTimeDifference, getTimeRange, timeFormat} from "../utilities/time";
 
 import draggable from 'vuedraggable';
+import TaskCreator from '../components/TaskCreator';
+import TaskDisplay from '../components/TaskDisplay'
 import { slotType } from '../utilities/slot';
 
 export default {
-  props: ['start', 'end'],
   components: {
-    draggable
+    draggable,
+    TaskCreator,
+    TaskDisplay
   },
 
   data() {
     return {
 
-
+      start: {
+        timeValue: "0900",
+        timeFormat: timeFormat.AM
+      },
+      end: {
+        timeValue: "0500",
+        timeFormat: timeFormat.PM
+      },
       difference: null,
       dayRange: null,
+      animated: true,
+      add: false,
+      noSpace: false,
       tasks: [
-        {
-          title: 'hi',
-          duration: 120,
-          startTime: '09:30',
-          timeFormat: timeFormat.AM,
-          description: 'task 1',
-          type: slotType.TASK
-        },
-        {
-          title: 'aye',
-          duration: 60,
-          startTime: '03:30',
-          timeFormat: timeFormat.PM,
-          description: 'task 2',
-          type: slotType.TASK
-        },
-        {
-          title: 'task',
-          duration: 30,
-          startTime: '04:30',
-          timeFormat: timeFormat.PM,
-          description: 'task 3',
-          type: slotType.TASK
-        }
       ],
 
       displayTasks: null,
@@ -80,7 +84,8 @@ export default {
   watch: {
     displayTasks: function() {
       this.updateTasks()
-    }
+    },
+
   },
 
   mounted() {
@@ -103,27 +108,60 @@ export default {
       return `${timeString.slice(0,2)}:${timeString.slice(2,4)}`
     },
 
-    /**
-     * Calculates height of task element, so it can be displayed in the correct time slots
-     * @param {number} taskLength duration of the task
-     */
-    getHeightOfTask(taskLength) {
-      return taskLength * 1.7;
-    },
 
-
-    /**
-     * Gets colour of task element, depending on task type
-     * @param {slotType} taskType type of task (task or empty)
+     /**
+     * Adds task to 
+     * @param {string} timeString
      */
-    getColourOfTask(taskType) {
-      if(taskType == slotType.TASK) {
-        return 'lightgreen'
-      } else if (taskType == slotType.EMPTY) {
-        return 'lightgrey';
+    addTask(task) {
+      let curSlot = 0;
+      let foundSlot = false;
+      for (let curTask of this.displayTasks) {
+        foundSlot = true;
+        if (curTask.type == slotType.EMPTY) {
+          let numSlots = task.duration / 30;
+
+          for (let i = 0; i < numSlots; i++) {
+            if(curSlot + i < this.displayTasks.length && this.displayTasks[curSlot + i].type == slotType.TASK) {
+              foundSlot = false;
+            } 
+
+            if(curSlot + i > this.displayTasks.length) {
+              foundSlot = false;
+            } 
+          }
+
+          if(foundSlot) {
+                
+            this.noSpace = false;
+            this.animated = false;
+            this.$refs.taskCreator.removeTask(task)
+            task.startTime = curTask.startTime;
+            task.id = curTask.id;
+            task.timeFormat = curTask.timeFormat
+            this.tasks.push(task);
+            this.displayTasks = this.getTasksToDisplay();
+
+            return
+          } 
+
+        }
+        foundSlot = false;
+        curSlot++;
       }
+      
+      if(!foundSlot) this.noSpace = true;
+
     },
 
+
+    removeTask(task) {
+      this.tasks = this.tasks.filter(x => x != task);
+      this.$refs.taskCreator.addTaskToList(task);
+      this.displayTasks = this.getTasksToDisplay();
+    },
+
+  
 
     /**
      * Gets list of tasks to display on screen, fills empty spots with empty tasks
@@ -167,6 +205,10 @@ export default {
 
     isTask(task) {
       return task.type == slotType.TASK
+    },
+
+    isEmpty(task) {
+      return task.type == slotType.EMPTY
     },
 
 
@@ -233,7 +275,25 @@ export default {
 }
 .ghost {
   opacity: 0.5;
+  color: #88d376;
   background: #c8ebfb;
+}
+
+
+#content-container {
+  margin: auto;
+  text-align: center;
+}
+
+#time-value-col {
+  text-align: right;
+  margin-right: 0px;
+  padding-right: 0.25em;
+}
+
+#timeline-col {
+  margin-top: 11px;
+  /* padding-left: 0.25em; */
 }
 
 
@@ -243,8 +303,10 @@ export default {
 }
 
 #time-value-container {
+
   float: left;
 }
+
 
 #timeslot-container {
   width: 20%;
@@ -252,21 +314,26 @@ export default {
 }
 
 #time-values {
-  height: 50px
+  color: #3d6774;
+  height: 50px;
 }
+
+#no-space {
+  position: relative;
+  height: 20px;
+  color: red;
+}
+
+
 
 #items {
   margin-top: 5px;
   float: right;
+
 }
 
-#item {
-  background: lightgreen;
-  border-style: solid;
-  border-width: 1px;
-  width: 250px;
-  cursor:grab;
-}
+
+
 
 
 
